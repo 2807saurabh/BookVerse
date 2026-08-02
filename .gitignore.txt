@@ -1,0 +1,29 @@
+# Java
+target/
+*.class
+
+# Maven
+.mvn/
+
+# IntelliJ
+.idea/
+*.iml
+
+# React
+node_modules/
+dist/
+
+# VS Code
+.vscode/
+
+# Logs
+*.log
+
+# Environment
+.env
+
+# OS
+.DS_Store
+Thumbs.db
+
+bookverse-backend/src/main/resources/application-local.properties
