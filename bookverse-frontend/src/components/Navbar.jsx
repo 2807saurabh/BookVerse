@@ -1,25 +1,31 @@
-import React, { useEffect, useState } from "react";
-import Home from "./Home"
+import React, { useContext, useEffect, useState } from "react";
+import { useNavigate } from "react-router-dom";
+import Home from "./Home";
 import axios from "axios";
-// import { json } from "react-router-dom";
-// import { BiSunFill, BiMoon } from "react-icons/bi";
+import AppContext from "../Context/Context";
 
 const Navbar = ({ onSelectCategory, onSearch }) => {
   const getInitialTheme = () => {
     const storedTheme = localStorage.getItem("theme");
     return storedTheme ? storedTheme : "light-theme";
   };
+  const navigate = useNavigate();
+
+  const { isLoggedIn, logout } = useContext(AppContext);
   const [selectedCategory, setSelectedCategory] = useState("");
   const [theme, setTheme] = useState(getInitialTheme());
   const [input, setInput] = useState("");
   const [searchResults, setSearchResults] = useState([]);
   const [noResults, setNoResults] = useState(false);
   const [searchFocused, setSearchFocused] = useState(false);
-  const [showSearchResults,setShowSearchResults] = useState(false)
+  const [showSearchResults, setShowSearchResults] = useState(false)
   useEffect(() => {
     fetchData();
   }, []);
-
+  const handleLogout = () => {
+    logout();
+    navigate("/login");
+  };
   const fetchData = async (value) => {
     try {
       const response = await axios.get("http://localhost:8080/api/product");
@@ -34,16 +40,16 @@ const Navbar = ({ onSelectCategory, onSearch }) => {
     setInput(value);
     if (value.length >= 1) {
       setShowSearchResults(true)
-    try {
-      const response = await axios.get(
-        `http://localhost:8080/api/product/search?keyword=${value}`
-      );
-      setSearchResults(response.data);
-      setNoResults(response.data.length === 0);
-      console.log(response.data);
-    } catch (error) {
-      console.error("Error searching:", error);
-    }
+      try {
+        const response = await axios.get(
+          `http://localhost:8080/api/product/search?keyword=${value}`
+        );
+        setSearchResults(response.data);
+        setNoResults(response.data.length === 0);
+        console.log(response.data);
+      } catch (error) {
+        console.error("Error searching:", error);
+      }
     } else {
       setShowSearchResults(false);
       setSearchResults([]);
@@ -51,34 +57,7 @@ const Navbar = ({ onSelectCategory, onSearch }) => {
     }
   };
 
-  
-  // const handleChange = async (value) => {
-  //   setInput(value);
-  //   if (value.length >= 1) {
-  //     setShowSearchResults(true);
-  //     try {
-  //       let response;
-  //       if (!isNaN(value)) {
-  //         // Input is a number, search by ID
-  //         response = await axios.get(`http://localhost:8080/api/products/search?id=${value}`);
-  //       } else {
-  //         // Input is not a number, search by keyword
-  //         response = await axios.get(`http://localhost:8080/api/products/search?keyword=${value}`);
-  //       }
 
-  //       const results = response.data;
-  //       setSearchResults(results);
-  //       setNoResults(results.length === 0);
-  //       console.log(results);
-  //     } catch (error) {
-  //       console.error("Error searching:", error.response ? error.response.data : error.message);
-  //     }
-  //   } else {
-  //     setShowSearchResults(false);
-  //     setSearchResults([]);
-  //     setNoResults(false);
-  //   }
-  // };
 
   const handleCategorySelect = (category) => {
     setSelectedCategory(category);
@@ -96,20 +75,20 @@ const Navbar = ({ onSelectCategory, onSearch }) => {
 
   const categories = [
     "Fiction",
-  "Non-Fiction",
-  "Fantasy",
-  "Science Fiction",
-  "Mystery",
-  "Thriller",
-  "Romance",
-  "Biography",
-  "Self Help",
-  "Business",
-  "Programming",
-  "History",
-  "Children",
-  "Comics",
-  "Education"
+    "Non-Fiction",
+    "Fantasy",
+    "Science Fiction",
+    "Mystery",
+    "Thriller",
+    "Romance",
+    "Biography",
+    "Self Help",
+    "Business",
+    "Programming",
+    "History",
+    "Children",
+    "Comics",
+    "Education"
   ];
   return (
     <>
@@ -140,11 +119,13 @@ const Navbar = ({ onSelectCategory, onSearch }) => {
                     Home
                   </a>
                 </li>
-                <li className="nav-item">
-                  <a className="nav-link" href="/add_product">
-                    Add Book
-                  </a>
-                </li>
+                {isLoggedIn && (
+                  <li className="nav-item">
+                    <a className="nav-link" href="/add_product">
+                      Add Book
+                    </a>
+                  </li>
+                )}
 
                 <li className="nav-item dropdown">
                   <a
@@ -189,6 +170,23 @@ const Navbar = ({ onSelectCategory, onSearch }) => {
                     Cart
                   </i>
                 </a>
+                <div className="ms-3">
+                  {isLoggedIn ? (
+                    <button
+                      className="btn btn-danger"
+                      onClick={handleLogout}
+                    >
+                      Logout
+                    </button>
+                  ) : (
+                    <button
+                      className="btn btn-primary"
+                      onClick={() => navigate("/login")}
+                    >
+                      Login
+                    </button>
+                  )}
+                </div>
                 {/* <form className="d-flex" role="search" onSubmit={handleSearch} id="searchForm"> */}
                 <input
                   className="form-control me-2"
@@ -202,14 +200,14 @@ const Navbar = ({ onSelectCategory, onSearch }) => {
                 />
                 {showSearchResults && (
                   <ul className="list-group">
-                    {searchResults.length > 0 ? (  
-                        searchResults.map((result) => (
-                          <li key={result.id} className="list-group-item">
-                            <a href={`/product/${result.id}`} className="search-result-link">
+                    {searchResults.length > 0 ? (
+                      searchResults.map((result) => (
+                        <li key={result.id} className="list-group-item">
+                          <a href={`/product/${result.id}`} className="search-result-link">
                             <span>{result.name}</span>
-                            </a>
-                          </li>
-                        ))
+                          </a>
+                        </li>
+                      ))
                     ) : (
                       noResults && (
                         <p className="no-results-message">

@@ -13,6 +13,7 @@ import "bootstrap/dist/js/bootstrap.bundle.min.js";
 import 'bootstrap/dist/css/bootstrap.min.css';
 import LoginSuccess from "./components/LoginSuccess";
 import Login from "./components/Login";
+import ProtectedRoute from "./components/ProtectedRoute";
 
 function App() {
   const [cart, setCart] = useState([]);
@@ -41,7 +42,7 @@ function App() {
     <AppProvider>
       <BrowserRouter>
         <Navbar onSelectCategory={handleCategorySelect}
-         />
+        />
         <Routes>
           <Route
             path="/"
@@ -50,13 +51,34 @@ function App() {
               />
             }
           />
-          <Route path="/add_product" element={<AddProduct />} />
-          <Route path="/product" element={<Product  />} />
-          <Route path="/product/:id" element={<Product  />} />
-          <Route path="/cart" element={<Cart />} />
-          <Route path="/product/update/:id" element={<UpdateProduct />} />
+          <Route
+            path="/add_product"
+            element={
+              <ProtectedRoute>
+                <AddProduct />
+              </ProtectedRoute>
+            }
+          />
+          <Route path="/product" element={<Product />} />
+          <Route path="/product/:id" element={<Product />} />
+          <Route
+            path="/product/update/:id"
+            element={
+              <ProtectedRoute>
+                <UpdateProduct />
+              </ProtectedRoute>
+            }
+          />
           <Route path="/login-success" element={<LoginSuccess />} />
           <Route path="/login" element={<Login />} />
+          <Route
+            path="/cart"
+            element={
+              <ProtectedRoute>
+                <Cart />
+              </ProtectedRoute>
+            }
+          />
         </Routes>
       </BrowserRouter>
     </AppProvider>

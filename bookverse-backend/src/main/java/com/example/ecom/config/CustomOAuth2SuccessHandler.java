@@ -40,9 +40,10 @@ public class CustomOAuth2SuccessHandler implements AuthenticationSuccessHandler 
 
         Optional<User> optionalUser = userRepo.findByEmail(email);
 
+        User user = null;
         if (optionalUser.isEmpty()) {
 
-            User user = new User();
+            user = new User();
             user.setName(name);
             user.setEmail(email);
             user.setRole(Role.ROLE_USER);
@@ -52,7 +53,10 @@ public class CustomOAuth2SuccessHandler implements AuthenticationSuccessHandler 
         }
 
         // Generate JWT
-        String token = jwtUtil.generateToken(email);
+        String token = jwtUtil.generateToken(
+                user.getEmail(),
+                user.getRole().name()
+        );
 
         // Redirect React with JWT
         response.sendRedirect("http://localhost:5173/login-success?token=" + token);

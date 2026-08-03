@@ -32,7 +32,13 @@ public class AuthService {
                 )
         );
 
-        String token = jwtUtil.generateToken(request.getEmail());
+        User user = userRepo.findByEmail(request.getEmail())
+                .orElseThrow(() -> new RuntimeException("User not found"));
+
+        String token = jwtUtil.generateToken(
+                user.getEmail(),
+                user.getRole().name()
+        );
 
         return new LoginResponse(token);
     }
