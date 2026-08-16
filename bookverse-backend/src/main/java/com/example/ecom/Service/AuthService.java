@@ -40,7 +40,10 @@ public class AuthService {
                 user.getRole().name()
         );
 
-        return new LoginResponse(token);
+        return new LoginResponse(
+                token,
+                user.getRole().name()
+        );
     }
 
 

@@ -58,7 +58,10 @@ public class SecurityConfig {
                                 "/auth/register",
                                 "/auth/login"
                         ).permitAll()
-                        .requestMatchers("/api/product/**").permitAll()
+                        .requestMatchers(HttpMethod.GET, "/api/product/**").permitAll()
+                        .requestMatchers(HttpMethod.POST, "/api/product/**").hasRole("ADMIN")
+                        .requestMatchers(HttpMethod.PUT, "/api/product/**").hasRole("ADMIN")
+                        .requestMatchers(HttpMethod.DELETE, "/api/product/**").hasRole("ADMIN")
                         .requestMatchers("/test/**").authenticated()
                         .requestMatchers("/role/admin/**").hasRole("ADMIN")
                         .requestMatchers("/role/user/**").hasAnyRole("USER", "ADMIN")

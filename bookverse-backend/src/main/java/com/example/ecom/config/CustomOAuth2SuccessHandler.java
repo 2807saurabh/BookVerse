@@ -40,7 +40,9 @@ public class CustomOAuth2SuccessHandler implements AuthenticationSuccessHandler 
 
         Optional<User> optionalUser = userRepo.findByEmail(email);
 
-        User user = null;
+
+        User user;
+
         if (optionalUser.isEmpty()) {
 
             user = new User();
@@ -49,7 +51,10 @@ public class CustomOAuth2SuccessHandler implements AuthenticationSuccessHandler 
             user.setRole(Role.ROLE_USER);
             user.setProvider(Provider.GOOGLE);
 
-            userRepo.save(user);
+            user = userRepo.save(user);
+
+        } else {
+            user = optionalUser.get();
         }
 
         // Generate JWT
