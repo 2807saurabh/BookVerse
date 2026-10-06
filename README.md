@@ -161,7 +161,6 @@ BookVerse uses MySQL as its relational database and Spring Data JPA for persiste
 The backend follows a layered approach for handling:
 - Users
 - Books
-- Categories
 - Cart data
 - Authentication and authorization
 
