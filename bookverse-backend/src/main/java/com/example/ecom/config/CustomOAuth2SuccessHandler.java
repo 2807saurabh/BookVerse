@@ -28,24 +28,27 @@ public class CustomOAuth2SuccessHandler implements AuthenticationSuccessHandler 
     }
 
     @Override
-    public void onAuthenticationSuccess(HttpServletRequest request,
-                                        HttpServletResponse response,
-                                        Authentication authentication)
+    public void onAuthenticationSuccess(
+            HttpServletRequest request,
+            HttpServletResponse response,
+            Authentication authentication)
             throws IOException, ServletException {
 
-        OAuth2User oauthUser = (OAuth2User) authentication.getPrincipal();
+        OAuth2User oauthUser =
+                (OAuth2User) authentication.getPrincipal();
 
         String email = oauthUser.getAttribute("email");
         String name = oauthUser.getAttribute("name");
 
-        Optional<User> optionalUser = userRepo.findByEmail(email);
-
+        Optional<User> optionalUser =
+                userRepo.findByEmail(email);
 
         User user;
 
         if (optionalUser.isEmpty()) {
 
             user = new User();
+
             user.setName(name);
             user.setEmail(email);
             user.setRole(Role.ROLE_USER);
@@ -63,7 +66,12 @@ public class CustomOAuth2SuccessHandler implements AuthenticationSuccessHandler 
                 user.getRole().name()
         );
 
-        // Redirect React with JWT
-        response.sendRedirect("http://localhost:5173/login-success?token=" + token);
+        // Redirect React with JWT and role
+        response.sendRedirect(
+                "http://localhost:5173/login-success?token="
+                        + token
+                        + "&role="
+                        + user.getRole().name()
+        );
     }
 }
