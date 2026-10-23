@@ -1,0 +1,14 @@
+﻿# Environment secrets
+.env
+.env.*
+!.env.example
+
+# Database backups
+backups/
+
+# IDE files
+.idea/
+
+# Build outputs
+**/target/
+**/node_modules/
