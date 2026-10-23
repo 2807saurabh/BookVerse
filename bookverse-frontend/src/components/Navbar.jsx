@@ -1,6 +1,5 @@
-import React, { useContext, useEffect, useState } from "react";
+import { useContext, useEffect, useState } from "react";
 import { useNavigate } from "react-router-dom";
-import Home from "./Home";
 import axios from "axios";
 import AppContext from "../Context/Context";
 
@@ -11,7 +10,9 @@ const Navbar = ({ onSelectCategory, onSearch }) => {
   };
   const navigate = useNavigate();
 
-  const { isLoggedIn, logout } = useContext(AppContext);
+  const { isLoggedIn, role } = useContext(AppContext);
+  console.log("Navbar Login:", isLoggedIn);
+console.log("Navbar Role:", role);
   const [selectedCategory, setSelectedCategory] = useState("");
   const [theme, setTheme] = useState(getInitialTheme());
   const [input, setInput] = useState("");
@@ -22,10 +23,6 @@ const Navbar = ({ onSelectCategory, onSearch }) => {
   useEffect(() => {
     fetchData();
   }, []);
-  const handleLogout = () => {
-    logout();
-    navigate("/login");
-  };
   const fetchData = async (value) => {
     try {
       const response = await axios.get("http://localhost:8080/api/product");
@@ -119,7 +116,7 @@ const Navbar = ({ onSelectCategory, onSearch }) => {
                     Home
                   </a>
                 </li>
-                {isLoggedIn && (
+                {isLoggedIn && (role === "ADMIN" || role === "ROLE_ADMIN") && (
                   <li className="nav-item">
                     <a className="nav-link" href="/add_product">
                       Add Book
@@ -172,12 +169,7 @@ const Navbar = ({ onSelectCategory, onSearch }) => {
                 </a>
                 <div className="ms-3">
                   {isLoggedIn ? (
-                    <button
-                      className="btn btn-danger"
-                      onClick={handleLogout}
-                    >
-                      Logout
-                    </button>
+                    <button className="btn btn-outline-primary" onClick={() => navigate("/profile")}>Profile</button>
                   ) : (
                     <button
                       className="btn btn-primary"

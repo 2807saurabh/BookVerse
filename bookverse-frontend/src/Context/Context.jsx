@@ -5,16 +5,16 @@ const AppContext = createContext({
   data: [],
   isError: "",
   cart: [],
-  addToCart: () => {},
-  removeFromCart: () => {},
-  refreshData: () => {},
-  clearCart: () => {},
+  addToCart: () => { },
+  removeFromCart: () => { },
+  refreshData: () => { },
+  clearCart: () => { },
   token: null,
   isLoggedIn: false,
-  login: () => {},
-  logout: () => {}
+  role: null,
+  login: () => { },
+  logout: () => { }
 });
-
 export const AppProvider = ({ children }) => {
   const [data, setData] = useState([]);
   const [isError, setIsError] = useState("");
@@ -24,6 +24,7 @@ export const AppProvider = ({ children }) => {
   );
 
   const [token, setToken] = useState(localStorage.getItem("token"));
+  const [role, setRole] = useState(localStorage.getItem("role"));
   const [isLoggedIn, setIsLoggedIn] = useState(
     !!localStorage.getItem("token")
   );
@@ -70,18 +71,22 @@ export const AppProvider = ({ children }) => {
     setCart([]);
     localStorage.removeItem("cart");
   };
+  const login = (token, role) => {
+    localStorage.setItem("token", token);
+    localStorage.setItem("role", role);
 
-  const login = (jwt) => {
-    localStorage.setItem("token", jwt);
-    setToken(jwt);
+    setToken(token);
+    setRole(role);
     setIsLoggedIn(true);
   };
 
   const logout = () => {
     localStorage.removeItem("token");
+    localStorage.removeItem("role");
+
     setToken(null);
+    setRole(null);
     setIsLoggedIn(false);
-    clearCart();
   };
 
   useEffect(() => {
@@ -104,6 +109,7 @@ export const AppProvider = ({ children }) => {
         clearCart,
         token,
         isLoggedIn,
+        role,
         login,
         logout,
       }}
