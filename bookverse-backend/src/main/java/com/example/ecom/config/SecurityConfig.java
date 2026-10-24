@@ -88,7 +88,8 @@ public class SecurityConfig {
 
         configuration.setAllowedOrigins(List.of(
                 "http://localhost:3000",
-                "http://localhost:5173"
+                "http://localhost:5173",
+                "https://bookverse-frontend-flpf.onrender.com"
         ));
 
         configuration.setAllowedMethods(List.of(
