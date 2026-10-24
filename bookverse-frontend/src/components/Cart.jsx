@@ -7,7 +7,7 @@ import { Button } from "react-bootstrap";
 import API from "../axios";
 import { useNavigate } from "react-router-dom";
 
-const API_URL = "http://localhost:8080";
+const API_URL = "";
 
 function loadRazorpayScript() {
   return new Promise((resolve) => {

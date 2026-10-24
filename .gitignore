@@ -12,3 +12,4 @@ backups/
 # Build outputs
 **/target/
 **/node_modules/
+bookverse-backend/certs/

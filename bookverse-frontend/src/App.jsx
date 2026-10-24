@@ -56,7 +56,7 @@ function App() {
       <Route
         path="/add_product"
         element={
-          <ProtectedRoute>
+          <ProtectedRoute adminOnly>
             <AddProduct />
           </ProtectedRoute>
         }
@@ -68,7 +68,7 @@ function App() {
       <Route
         path="/product/update/:id"
         element={
-          <ProtectedRoute>
+          <ProtectedRoute adminOnly>
             <UpdateProduct />
           </ProtectedRoute>
         }

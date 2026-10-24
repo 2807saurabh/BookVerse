@@ -3,10 +3,9 @@ import { useContext, useEffect } from "react";
 import { useState } from "react";
 import AppContext from "../Context/Context";
 import axios from "../axios";
-import UpdateProduct from "./UpdateProduct";
 const Product = () => {
   const { id } = useParams();
-  const { data, addToCart, removeFromCart, cart, refreshData } =
+  const { data, addToCart, removeFromCart, cart, refreshData, isAdmin } =
     useContext(AppContext);
   const [product, setProduct] = useState(null);
   const [imageUrl, setImageUrl] = useState("");
@@ -16,7 +15,7 @@ const Product = () => {
     const fetchProduct = async () => {
       try {
         const response = await axios.get(
-          `http://localhost:8080/api/product/${id}`
+          `/api/product/${id}`
         );
         setProduct(response.data);
         if (response.data.imageName) {
@@ -29,7 +28,7 @@ const Product = () => {
 
     const fetchImage = async () => {
       const response = await axios.get(
-        `http://localhost:8080/api/product/${id}/image`,
+        `/api/product/${id}/image`,
         { responseType: "blob" }
       );
       setImageUrl(URL.createObjectURL(response.data));
@@ -40,7 +39,7 @@ const Product = () => {
 
   const deleteProduct = async () => {
     try {
-      await axios.delete(`http://localhost:8080/api/product/${id}`);
+      await axios.delete(`/api/product/${id}`);
       removeFromCart(id);
       console.log("Product deleted successfully");
       alert("Product deleted successfully");
@@ -129,7 +128,7 @@ const Product = () => {
             </h6>
           
           </div>
-          <div className="update-button" style={{ display: "flex", gap: "1rem" }}>
+          {isAdmin && <div className="update-button" style={{ display: "flex", gap: "1rem" }}>
             <button
               className="btn btn-primary"
               type="button"
@@ -163,7 +162,7 @@ const Product = () => {
             >
               Delete
             </button>
-          </div>
+          </div>}
         </div>
       </div>
     </>

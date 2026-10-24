@@ -81,7 +81,7 @@ login(response.data.token, response.data.role);
 
         <a
           className="google-login"
-          href="http://localhost:8080/oauth2/authorization/google"
+          href="/oauth2/authorization/google"
         >
           Login with Google
         </a>

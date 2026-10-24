@@ -10,9 +10,7 @@ const Navbar = ({ onSelectCategory, onSearch }) => {
   };
   const navigate = useNavigate();
 
-  const { isLoggedIn, role } = useContext(AppContext);
-  console.log("Navbar Login:", isLoggedIn);
-console.log("Navbar Role:", role);
+  const { isLoggedIn, isAdmin } = useContext(AppContext);
   const [selectedCategory, setSelectedCategory] = useState("");
   const [theme, setTheme] = useState(getInitialTheme());
   const [input, setInput] = useState("");
@@ -25,7 +23,7 @@ console.log("Navbar Role:", role);
   }, []);
   const fetchData = async (value) => {
     try {
-      const response = await axios.get("http://localhost:8080/api/product");
+      const response = await axios.get("/api/product");
       setSearchResults(response.data);
       console.log(response.data);
     } catch (error) {
@@ -39,7 +37,7 @@ console.log("Navbar Role:", role);
       setShowSearchResults(true)
       try {
         const response = await axios.get(
-          `http://localhost:8080/api/product/search?keyword=${value}`
+          `/api/product/search?keyword=${value}`
         );
         setSearchResults(response.data);
         setNoResults(response.data.length === 0);
@@ -116,7 +114,7 @@ console.log("Navbar Role:", role);
                     Home
                   </a>
                 </li>
-                {isLoggedIn && (role === "ADMIN" || role === "ROLE_ADMIN") && (
+                {isAdmin && (
                   <li className="nav-item">
                     <a className="nav-link" href="/add_product">
                       Add Book

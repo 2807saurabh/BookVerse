@@ -12,7 +12,7 @@ import org.springframework.security.core.Authentication;
 import org.springframework.security.oauth2.core.user.OAuth2User;
 import org.springframework.security.web.authentication.AuthenticationSuccessHandler;
 import org.springframework.stereotype.Component;
-
+import org.springframework.beans.factory.annotation.Value;
 import java.io.IOException;
 import java.util.Optional;
 
@@ -26,7 +26,8 @@ public class CustomOAuth2SuccessHandler implements AuthenticationSuccessHandler 
         this.userRepo = userRepo;
         this.jwtUtil = jwtUtil;
     }
-
+    @Value("${app.frontend.url:http://localhost:3000}")
+    private String frontendUrl;
     @Override
     public void onAuthenticationSuccess(
             HttpServletRequest request,
@@ -68,7 +69,7 @@ public class CustomOAuth2SuccessHandler implements AuthenticationSuccessHandler 
 
         // Redirect React with JWT and role
         response.sendRedirect(
-                "http://localhost:5173/login-success?token="
+                frontendUrl + "/login-success?token="
                         + token
                         + "&role="
                         + user.getRole().name()

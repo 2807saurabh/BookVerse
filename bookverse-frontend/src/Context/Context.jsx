@@ -11,6 +11,7 @@ const AppContext = createContext({
   clearCart: () => { },
   token: null,
   isLoggedIn: false,
+  isAdmin: false,
   role: null,
   login: () => { },
   logout: () => { }
@@ -28,6 +29,7 @@ export const AppProvider = ({ children }) => {
   const [isLoggedIn, setIsLoggedIn] = useState(
     !!localStorage.getItem("token")
   );
+  const isAdmin = isLoggedIn && (role === "ROLE_ADMIN" || role === "ADMIN");
 
   const addToCart = (product) => {
     const existingProductIndex = cart.findIndex(
@@ -109,6 +111,7 @@ export const AppProvider = ({ children }) => {
         clearCart,
         token,
         isLoggedIn,
+        isAdmin,
         role,
         login,
         logout,
