@@ -16,7 +16,7 @@ function LoginSuccess() {
         console.log("GOOGLE LOGIN ROLE:", role);
 
         if (token) {
-            login(token, role);
+            void login(token, role);
         }
 
         navigate("/");

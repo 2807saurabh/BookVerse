@@ -1,7 +1,7 @@
 import { useContext, useEffect, useState } from "react";
 import { useNavigate } from "react-router-dom";
-import axios from "axios";
 import AppContext from "../Context/Context";
+import API from "../axios";
 
 const Navbar = ({ onSelectCategory, onSearch }) => {
   const getInitialTheme = () => {
@@ -10,7 +10,7 @@ const Navbar = ({ onSelectCategory, onSearch }) => {
   };
   const navigate = useNavigate();
 
-  const { isLoggedIn, isAdmin } = useContext(AppContext);
+  const { isLoggedIn, isAdmin, cart } = useContext(AppContext);
   const [selectedCategory, setSelectedCategory] = useState("");
   const [theme, setTheme] = useState(getInitialTheme());
   const [input, setInput] = useState("");
@@ -23,7 +23,7 @@ const Navbar = ({ onSelectCategory, onSearch }) => {
   }, []);
   const fetchData = async (value) => {
     try {
-      const response = await axios.get("/api/product");
+      const response = await API.get("/api/product");
       setSearchResults(response.data);
       console.log(response.data);
     } catch (error) {
@@ -36,7 +36,7 @@ const Navbar = ({ onSelectCategory, onSearch }) => {
     if (value.length >= 1) {
       setShowSearchResults(true)
       try {
-        const response = await axios.get(
+        const response = await API.get(
           `/api/product/search?keyword=${value}`
         );
         setSearchResults(response.data);
@@ -162,7 +162,7 @@ const Navbar = ({ onSelectCategory, onSearch }) => {
                     className="bi bi-cart me-2"
                     style={{ display: "flex", alignItems: "center" }}
                   >
-                    Cart
+                    Cart <span className="badge bg-primary ms-1">{cart.reduce((count, item) => count + Number(item.quantity || 0), 0)}</span>
                   </i>
                 </a>
                 <div className="ms-3">

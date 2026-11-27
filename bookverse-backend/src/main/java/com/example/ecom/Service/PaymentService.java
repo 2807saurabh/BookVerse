@@ -10,6 +10,7 @@ import com.example.ecom.Reposetory.AddressRepository;
 import com.example.ecom.Reposetory.OrderRepository;
 import com.example.ecom.Reposetory.PaymentRepository;
 import com.example.ecom.Reposetory.ProductRepo;
+import com.example.ecom.Reposetory.CartRepository;
 import com.example.ecom.Reposetory.UserRepo;
 import com.example.ecom.dto.CreatePaymentOrderRequest;
 import com.example.ecom.dto.CreatePaymentOrderResponse;
@@ -51,6 +52,7 @@ public class PaymentService {
     private final RazorpayClient razorpayClient;
     private final RazorpayOrderStatusInspector statusInspector;
     private final PaymentStateFinalizer paymentStateFinalizer;
+    private final CartRepository cartRepository;
 
     @Value("${razorpay.key.id}")
     private String keyId;
@@ -67,7 +69,8 @@ public class PaymentService {
             AddressRepository addressRepo,
             RazorpayClient razorpayClient,
             RazorpayOrderStatusInspector statusInspector,
-            PaymentStateFinalizer paymentStateFinalizer) {
+            PaymentStateFinalizer paymentStateFinalizer,
+            CartRepository cartRepository) {
 
         this.productRepo = productRepo;
         this.userRepo = userRepo;
@@ -77,6 +80,7 @@ public class PaymentService {
         this.razorpayClient = razorpayClient;
         this.statusInspector = statusInspector;
         this.paymentStateFinalizer = paymentStateFinalizer;
+        this.cartRepository = cartRepository;
     }
 
     @Transactional
@@ -144,7 +148,8 @@ public class PaymentService {
 
         // Reduce stock only after signature verification.
         for (OrderItem item : order.getItems()) {
-            Product product = item.getProduct();
+            Product product = productRepo.findByIdForUpdate(item.getProduct().getId())
+                    .orElseThrow(() -> new ResponseStatusException(HttpStatus.NOT_FOUND, "Product not found"));
 
             if (product.getStockQuantity() < item.getQuantity()) {
                 log.warn("Verified payment cannot complete due to insufficient stock: orderId={}, productId={}", order.getId(), product.getId());
@@ -170,6 +175,10 @@ public class PaymentService {
 
         paymentRepo.save(payment);
         orderRepo.save(order);
+        cartRepository.findForUserUpdate(email).ifPresent(cart -> {
+            cart.getItems().clear();
+            cartRepository.save(cart);
+        });
     }
 
 
@@ -214,18 +223,12 @@ public class PaymentService {
             String email,
             CreatePaymentOrderRequest request) {
 
-        if (request == null || request.items() == null
-                || request.items().isEmpty()) {
-            throw new ResponseStatusException(
-                    HttpStatus.BAD_REQUEST, "Cart is empty");
-        }
-
         User user = userRepo.findByEmail(email)
                 .orElseThrow(() -> new ResponseStatusException(
                         HttpStatus.NOT_FOUND, "User not found"));
 
         log.info("Order creation started for userId={}", user.getId());
-        if (request.addressId() == null) throw new ResponseStatusException(HttpStatus.BAD_REQUEST, "Select a delivery address");
+        if (request == null || request.addressId() == null) throw new ResponseStatusException(HttpStatus.BAD_REQUEST, "Select a delivery address");
         Address address = addressRepo.findByIdAndUserEmail(request.addressId(), email)
                 .orElseThrow(() -> {
                     log.warn("Checkout address ownership check failed: addressId={}, userId={}", request.addressId(), user.getId());
@@ -247,27 +250,15 @@ public class PaymentService {
         order.setDeliveryCountry(address.getCountry());
 
         BigDecimal total = BigDecimal.ZERO;
-        Set<Integer> seenProductIds = new HashSet<>();
+        var cart = cartRepository.findForUserUpdate(email)
+                .orElseThrow(() -> new ResponseStatusException(HttpStatus.BAD_REQUEST, "Cart is empty"));
+        if (cart.getItems().isEmpty()) throw new ResponseStatusException(HttpStatus.BAD_REQUEST, "Cart is empty");
 
-        for (CreatePaymentOrderRequest.Item item : request.items()) {
-
-            if (item.quantity() <= 0) {
-                throw new ResponseStatusException(
-                        HttpStatus.BAD_REQUEST, "Invalid quantity");
-            }
-
-            if (!seenProductIds.add(item.productId())) {
-                throw new ResponseStatusException(
-                        HttpStatus.BAD_REQUEST,
-                        "Duplicate product IDs are not allowed");
-            }
-
-            Product product = productRepo.findById(item.productId())
-                    .orElseThrow(() -> new ResponseStatusException(
-                            HttpStatus.NOT_FOUND, "Product not found"));
-
-            if (!product.isProductAvailable()
-                    || product.getStockQuantity() < item.quantity()) {
+        for (var cartItem : cart.getItems()) {
+            Product product = productRepo.findByIdForUpdate(cartItem.getProduct().getId())
+                    .orElseThrow(() -> new ResponseStatusException(HttpStatus.NOT_FOUND, "Product not found"));
+            int quantity = cartItem.getQuantity();
+            if (!product.isProductAvailable() || quantity <= 0 || product.getStockQuantity() < quantity) {
                 throw new ResponseStatusException(
                         HttpStatus.CONFLICT,
                         "Product unavailable or insufficient stock: "
@@ -284,13 +275,13 @@ public class PaymentService {
             OrderItem orderItem = new OrderItem();
             orderItem.setOrder(order);
             orderItem.setProduct(product);
-            orderItem.setQuantity(item.quantity());
+            orderItem.setQuantity(quantity);
             orderItem.setUnitPrice(price);
 
             order.getItems().add(orderItem);
 
             total = total.add(
-                    price.multiply(BigDecimal.valueOf(item.quantity())));
+                    price.multiply(BigDecimal.valueOf(quantity)));
         }
 
         total = total.setScale(2, RoundingMode.UNNECESSARY);

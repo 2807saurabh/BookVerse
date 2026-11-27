@@ -20,14 +20,7 @@ function Login() {
         email,
         password,
       });
-      console.log("========== LOGIN RESPONSE ==========");
-console.log(response.data);
-console.log("TOKEN:", response.data.token);
-console.log("ROLE:", response.data.role);
-console.log("====================================");
-
-  console.log("LOGIN RESPONSE:", response.data);
-login(response.data.token, response.data.role);
+      await login(response.data.token, response.data.role);
       navigate("/");
     } catch (err) {
       setError("Invalid email or password");

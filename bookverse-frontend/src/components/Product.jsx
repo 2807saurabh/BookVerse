@@ -1,14 +1,13 @@
 import { useNavigate, useParams } from "react-router-dom";
-import { useContext, useEffect } from "react";
-import { useState } from "react";
+import { useContext, useEffect, useState } from "react";
 import AppContext from "../Context/Context";
 import axios from "../axios";
 const Product = () => {
   const { id } = useParams();
-  const { data, addToCart, removeFromCart, cart, refreshData, isAdmin } =
+  const { addToCart, removeFromCart, refreshData, isAdmin, cartError } =
     useContext(AppContext);
   const [product, setProduct] = useState(null);
-  const [imageUrl, setImageUrl] = useState("");
+  const [adding, setAdding] = useState(false);
   const navigate = useNavigate();
 
   useEffect(() => {
@@ -18,20 +17,9 @@ const Product = () => {
           `/api/product/${id}`
         );
         setProduct(response.data);
-        if (response.data.imageName) {
-          fetchImage();
-        }
       } catch (error) {
         console.error("Error fetching product:", error);
       }
-    };
-
-    const fetchImage = async () => {
-      const response = await axios.get(
-        `/api/product/${id}/image`,
-        { responseType: "blob" }
-      );
-      setImageUrl(URL.createObjectURL(response.data));
     };
 
     fetchProduct();
@@ -54,9 +42,11 @@ const Product = () => {
     navigate(`/product/update/${id}`);
   };
 
-  const handlAddToCart = () => {
-    addToCart(product);
-    alert("Product added to cart");
+  const handlAddToCart = async () => {
+    if (adding) return;
+    setAdding(true);
+    try { await addToCart(product); } catch { /* context displays the error */ }
+    finally { setAdding(false); }
   };
   if (!product) {
     return (
@@ -70,7 +60,7 @@ const Product = () => {
       <div className="containers" style={{ display: "flex" }}>
         <img
           className="left-column-img"
-          src={imageUrl}
+          src={`/api/product/${product.id}/image`}
           alt={product.imageName}
           style={{ width: "50%", height: "auto" }}
         />
@@ -106,7 +96,7 @@ const Product = () => {
                 !product.productAvailable ? "disabled-btn" : ""
               }`}
               onClick={handlAddToCart}
-              disabled={!product.productAvailable}
+              disabled={!product.productAvailable || adding}
               style={{
                 padding: "1rem 2rem",
                 fontSize: "1rem",
@@ -118,8 +108,9 @@ const Product = () => {
                 marginBottom: "1rem",
               }}
             >
-              {product.productAvailable ? "Add to cart" : "Out of Stock"}
+              {!product.productAvailable ? "Out of Stock" : adding ? "Adding..." : "Add to cart"}
             </button>
+            {cartError && <p role="alert" className="text-danger">{cartError}</p>}
             <h6 style={{ marginBottom: "1rem" }}>
               Stock Available :{" "}
               <i style={{ color: "green", fontWeight: "bold" }}>

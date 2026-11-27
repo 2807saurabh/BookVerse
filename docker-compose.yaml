@@ -1,0 +1,10 @@
+services:
+  backend:
+    build:
+      context: ./bookverse-backend
+      dockerfile: Dockerfile.bookverse-backend
+    image: bookverse-backend:latest
+    env_file:
+      - .env
+    ports:
+      - "8080:8080"

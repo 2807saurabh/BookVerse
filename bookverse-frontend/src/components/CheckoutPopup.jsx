@@ -8,6 +8,12 @@ const CheckoutPopup = ({
   totalPrice,
   handleCheckout,
   isProcessing = false,
+  addresses = [],
+  selectedAddressId = "",
+  setSelectedAddressId = () => {},
+  addressLoading = false,
+  onManageAddresses = () => {},
+  message = "",
 }) => {
   return (
     <Modal show={show} onHide={handleClose} centered>
@@ -16,6 +22,16 @@ const CheckoutPopup = ({
       </Modal.Header>
 
       <Modal.Body>
+        {message && <p role="alert" className="text-danger">{message}</p>}
+        {addressLoading ? <p role="status">Loading delivery addresses…</p> : <div className="mb-3">
+          <label htmlFor="checkout-address" className="form-label">Delivery address</label>
+          {addresses.length ? <select id="checkout-address" className="form-select" value={selectedAddressId}
+            onChange={(event) => setSelectedAddressId(event.target.value)} disabled={isProcessing}>
+            {addresses.map((address) => <option key={address.id} value={address.id}>
+              {address.recipientName} — {address.addressLine}, {address.city} {address.pinCode}
+            </option>)}
+          </select> : <div><p>No saved delivery address.</p><Button variant="link" onClick={onManageAddresses}>Add an address</Button></div>}
+        </div>}
         {cartItems.map((item) => (
           <div
             key={item.id}
@@ -41,7 +57,7 @@ const CheckoutPopup = ({
               <p>Quantity: {item.quantity}</p>
               <p>
                 Price: ₹
-                {(Number(item.price) * item.quantity).toFixed(2)}
+                {Number(item.subtotal ?? Number(item.price) * item.quantity).toFixed(2)}
               </p>
             </div>
           </div>
@@ -70,7 +86,7 @@ const CheckoutPopup = ({
         <Button
           variant="primary"
           onClick={handleCheckout}
-          disabled={isProcessing || cartItems.length === 0}
+          disabled={isProcessing || cartItems.length === 0 || addressLoading || addresses.length === 0}
         >
           {isProcessing ? "Processing..." : "Pay with Razorpay"}
         </Button>

@@ -33,3 +33,4 @@ build/
 .vscode/
 bookverse-backend/src/main/resources/application-local.properties
 D:\Maven\bookverse\.env
+.env

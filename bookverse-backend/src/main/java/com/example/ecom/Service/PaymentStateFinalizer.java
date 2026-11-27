@@ -4,10 +4,12 @@ import com.example.ecom.Model.Payment;
 import com.example.ecom.Reposetory.OrderRepository;
 import com.example.ecom.Reposetory.PaymentRepository;
 import com.example.ecom.Reposetory.ProductRepo;
+import com.example.ecom.Reposetory.CartRepository;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.http.HttpStatus;
 import org.springframework.stereotype.Service;
+import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.transaction.annotation.Transactional;
 import org.springframework.web.server.ResponseStatusException;
 import java.time.LocalDateTime;
@@ -19,7 +21,10 @@ public class PaymentStateFinalizer {
     private final PaymentRepository payments;
     private final OrderRepository orders;
     private final ProductRepo products;
-    public PaymentStateFinalizer(PaymentRepository payments, OrderRepository orders, ProductRepo products) { this.payments = payments; this.orders = orders; this.products = products; }
+    private final CartRepository carts;
+    @Autowired
+    public PaymentStateFinalizer(PaymentRepository payments, OrderRepository orders, ProductRepo products, CartRepository carts) { this.payments = payments; this.orders = orders; this.products = products; this.carts = carts; }
+    PaymentStateFinalizer(PaymentRepository payments, OrderRepository orders, ProductRepo products) { this(payments, orders, products, null); }
 
     @Transactional
     public AppliedState applyProviderResult(String providerOrderId, RazorpayOrderStatusInspector.Result result) {
@@ -34,7 +39,7 @@ public class PaymentStateFinalizer {
             order.setCancellationCheckUntil(null);
             if (newlyConfirmed) {
                 order.getItems().forEach(item -> {
-                    var product = item.getProduct();
+                    var product = products.findByIdForUpdate(item.getProduct().getId()).orElse(item.getProduct());
                     if (product.getStockQuantity() < item.getQuantity()) {
                         log.error("Provider confirmed payment but stock could not be updated: orderId={}, productId={}", order.getId(), product.getId());
                     } else {
@@ -46,6 +51,7 @@ public class PaymentStateFinalizer {
             }
             payments.save(payment);
             orders.save(order);
+            if (carts != null) carts.findForUserUpdate(order.getUser().getEmail()).ifPresent(cart -> { cart.getItems().clear(); carts.save(cart); });
             log.info("Provider-confirmed payment reconciled: orderId={}, status=PAID", order.getId());
             return AppliedState.PAID;
         }
